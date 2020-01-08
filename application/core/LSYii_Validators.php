@@ -42,6 +42,12 @@ class LSYii_Validators extends CValidator
      * @var boolean
      */
     public $isLanguageMulti = false;
+    /**
+     * Filter everything in script text field.
+     * @see https://bugs.limesurvey.org/view.php?id=15690
+     * @var boolean
+     */
+    public $isScriptField = false;
 
     public function __construct()
     {
@@ -70,6 +76,15 @@ class LSYii_Validators extends CValidator
         }
         if ($this->isLanguageMulti) {
             $object->$attribute = $this->multiLanguageFilter($object->$attribute);
+        }
+        if ($this->isScriptField && $this->xssfilter) {
+            // Use previous value if user has no right to add JavaScript.
+            // TODO: Question is the only object with script text field right now.
+            $originalQuestioni10n = QuestionL10n::model()->findByPk($object->id);
+            if (empty($originalQuestioni10n)) {
+                throw new \Exception('Did not find QuestionL10n when filtering XSS');
+            }
+            $object->script = $originalQuestioni10n->script;
         }
     }
 

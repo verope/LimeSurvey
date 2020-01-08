@@ -78,7 +78,7 @@ class QuestionL10n extends LSActiveRecord
             ['qid', 'numerical', 'integerOnly'=>true],
             array('question', 'LSYii_Validators'),
             array('help', 'LSYii_Validators'),
-            array('script', 'LSYii_Validators'),
+            array('script', 'LSYii_Validators', 'isScriptField' => true),
             array('language', 'length', 'min' => 2, 'max'=>20), // in array languages ?
         );
     }
