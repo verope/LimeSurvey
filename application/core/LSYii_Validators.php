@@ -78,13 +78,17 @@ class LSYii_Validators extends CValidator
             $object->$attribute = $this->multiLanguageFilter($object->$attribute);
         }
         if ($this->isScriptField && $this->xssfilter) {
-            // Use previous value if user has no right to add JavaScript.
-            // TODO: Question is the only object with script text field right now.
-            $originalQuestioni10n = QuestionL10n::model()->findByPk($object->id);
-            if (empty($originalQuestioni10n)) {
-                throw new \Exception('Did not find QuestionL10n when filtering XSS');
+            if ($object->isNewRecord) {
+                $object->script = '';
+            } else {
+                // Use previous value if user has no right to add JavaScript.
+                // TODO: Question is the only object with script text field right now.
+                $originalQuestioni10n = QuestionL10n::model()->findByPk($object->id);
+                if (empty($originalQuestioni10n)) {
+                    throw new \Exception('Did not find QuestionL10n when filtering XSS');
+                }
+                $object->script = $originalQuestioni10n->script;
             }
-            $object->script = $originalQuestioni10n->script;
         }
     }
 
