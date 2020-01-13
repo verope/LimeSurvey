@@ -42,8 +42,23 @@ $templateModel = Template::model()->findByPk($oSurvey->oOptions->template);
 */ ?>
 <div class="row ls-space margin top-10">
 <?php
-    $possiblePanelFolder = realpath(Yii::app()->getConfig('rootdir').'/application/views/admin/survey/subview/surveydashboard/'); 
-    $possiblePanels = scandir($possiblePanelFolder); 
+    $basicPanelFolder = realpath(Yii::app()->getConfig('rootdir').'/application/views/admin/survey/subview/surveydashboard/'); 
+    $basicPossiblePanels = scandir($basicPanelFolder); 
+    $basicDataSetsAvailable = get_defined_vars();
+
+    $oEvent = new PluginEvent('surveyDashboardRender');
+    $oEvent->set('definedVars', $basicDataSetsAvailable);
+    $oEvent->set('possiblePanels', array_map(
+        function($panelFile) { 
+            return '/application/views/admin/survey/subview/surveydashboard/'.$panelFile; 
+        },
+        $basicPossiblePanels
+    ));
+
+    $oEvent = App()->getPluginManager()->dispatchEvent($oEvent);
+    $definedVars = $oEvent->get('definedVars');
+    $possiblePanels = $oEvent->get('possiblePanels');
+
     foreach ($possiblePanels as $i => $panel) {
          
         // If it's no twig file => ignore 
@@ -57,7 +72,7 @@ $templateModel = Template::model()->findByPk($oSurvey->oOptions->template);
         <?php } ?> 
         <div class="col-md-12 col-lg-6"> 
             <?php $surveyTextContent = $oSurvey->currentLanguageSettings->attributes; ?>
-        <?=App()->twigRenderer->renderViewFromFile('/application/views/admin/survey/subview/surveydashboard/'.$panel, get_defined_vars(), true)?>
+            <?=App()->twigRenderer->renderViewFromFile($panel, $definedVars, true)?>
         </div> 
     <?php }
 ?> 

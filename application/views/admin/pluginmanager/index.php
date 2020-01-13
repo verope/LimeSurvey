@@ -76,7 +76,7 @@ echo viewHelper::getViewTestTag('pluginManager');
         </div>
 
     <?php
-
+    $pageSize = 25;
     $sort = new CSort();
     $sort->attributes = array(
         'name'=>array(
