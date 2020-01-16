@@ -36,9 +36,15 @@ describe("Creating a save state", () => {
     });
     
     test("A safe state has been created", () => {
-        expect( 
-            Math.floor(global.LS.localStorageInterface.archive['TESTSTATE'].created/10)
-        ).toBe( creationTime);
+        let expected  = creationTime;
+        let testState = global.LS.localStorageInterface.archive['TESTSTATE'].created;
+        let testStateDividedByTen = testState / 10;
+        let actual  = Math.floor(testStateDividedByTen);
+        
+        console.log('Actual: ', actual);
+        console.log('Expected: ', expected);
+        expect(actual).toBe(expected);
+        //expect(Math.floor(global.LS.localStorageInterface.archive['TESTSTATE'].created/10)).toBe( creationTime);
     });
 
     test("The stored archive has been updated", () => {
