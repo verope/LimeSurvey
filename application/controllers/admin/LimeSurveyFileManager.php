@@ -23,6 +23,10 @@ if (!defined('BASEPATH')) {
  * @package        LimeSurvey
  * @subpackage    Backend
  */
+
+/**
+ * Class LimeSurveyFileManager
+ */
 class LimeSurveyFileManager extends Survey_Common_Action
 {
     /**
@@ -43,15 +47,21 @@ class LimeSurveyFileManager extends Survey_Common_Action
         'upload' . DIRECTORY_SEPARATOR . 'global',
     ];
 
-    public function getAllowedFileExtensions() {
+    /**
+     * @return mixed
+     */
+    public function getAllowedFileExtensions()
+    {
         return Yii::app()->getConfig('allowedfileuploads');
     }
 
     /**
      * Basic index function to call the view
      *
-     * @param int|null $iSurveyId
+     * @param null $surveyid
      * @return void Renders HTML-page
+     * @throws CException
+     * @throws CHttpException
      */
     public function index($surveyid = null)
     {
@@ -82,7 +92,7 @@ class LimeSurveyFileManager extends Survey_Common_Action
             'Copy file' => gT('Copy file'),
             'Move file' => gT('Move file'),
             'Allowed file formats' => gT('Allowed file formats'),
-            'File formats' => '.'.gT(implode(", .", $this->allowedFileExtensions)) 
+            'File formats' => '.'.gT(implode(", .", $this->allowedFileExtensions))
         ];
 
         Yii::app()->getClientScript()->registerPackage('filemanager');
@@ -107,6 +117,10 @@ class LimeSurveyFileManager extends Survey_Common_Action
         $this->_renderWrappedTemplate('SurveyFiles', $renderView, $aData);
     }
 
+    /**
+     * @param null $surveyid
+     * @throws CException
+     */
     public function getFilesForSurvey($surveyid = null)
     {
         $folders = $this->_collectCompleteFolderList($surveyid);
@@ -126,6 +140,8 @@ class LimeSurveyFileManager extends Survey_Common_Action
      * @param string $folder
      * @param int|null $iSurveyId
      * @return void Renders json document
+     * @throws CException
+     * @throws LSJsonException
      */
     public function getFileList($folder, $iSurveyId = null)
     {
@@ -142,6 +158,10 @@ class LimeSurveyFileManager extends Survey_Common_Action
         return;
     }
 
+    /**
+     * @param null $iSurveyId
+     * @throws CException
+     */
     public function getFolderList($iSurveyId = null)
     {
         $aAllowedFolders = $this->_collectRecursiveFolderList($iSurveyId);
@@ -150,20 +170,24 @@ class LimeSurveyFileManager extends Survey_Common_Action
         return;
     }
 
+    /**
+     * @throws CException
+     * @throws LSJsonException
+     */
     public function deleteFile()
     {
         $iSurveyId = Yii::app()->request->getPost('surveyid');
         $file = Yii::app()->request->getPost('file');
         $folder = dirname($file['path']);
         $checkDirectory = $this->_checkFolder($folder, $iSurveyId);
-        
+
         if ($checkDirectory === false) {
             $this->throwError();
             return;
         }
-        
+
         $realFilePath = dirname(Yii::app()->basePath) . DIRECTORY_SEPARATOR . $file['path'];
-        
+
         //Throw exception if file does not exist
         if (!$this->checkTargetExists($realFilePath)) {
             $this->_setError(
@@ -188,6 +212,10 @@ class LimeSurveyFileManager extends Survey_Common_Action
         );
     }
 
+    /**
+     * @throws CException
+     * @throws LSJsonException
+     */
     public function transitFiles()
     {
         $folder = Yii::app()->request->getPost('targetFolder');
@@ -196,7 +224,7 @@ class LimeSurveyFileManager extends Survey_Common_Action
         $action = Yii::app()->request->getPost('action');
 
         $checkDirectory = $this->_checkFolder($folder, $iSurveyId);
-        
+
         foreach($files as $file) {
             $realTargetPath = dirname(Yii::app()->basePath) . DIRECTORY_SEPARATOR . $folder;
             $fileDestination = realpath($realTargetPath) . DIRECTORY_SEPARATOR . $file['shortName'];
@@ -244,6 +272,8 @@ class LimeSurveyFileManager extends Survey_Common_Action
      * @TODO Currently a naive extension filter is in place this needs to be secured against executables.
      *
      * @return void
+     * @throws CException
+     * @throws LSJsonException
      */
     public function uploadFile()
     {
@@ -314,12 +344,12 @@ class LimeSurveyFileManager extends Survey_Common_Action
             return;
         }
 
-        
+
         if($ext == 'zip') {
             App()->loadLibrary('admin.pclzip');
             $zip = new PclZip($_FILES['file']['tmp_name']);
             $aExtractResult = $zip->extract(PCLZIP_OPT_PATH, $destdir, PCLZIP_CB_PRE_EXTRACT, 'resourceExtractFilter');
-            
+
             if ($aExtractResult === 0) {
                 $this->_setError(
                     'FILE_NOT_A_VALID_ARCHIVE',
@@ -334,8 +364,8 @@ class LimeSurveyFileManager extends Survey_Common_Action
         } else {
             if (
                 !move_uploaded_file(
-                    $_FILES['file']['tmp_name'], 
-                    $fullfilepath 
+                    $_FILES['file']['tmp_name'],
+                    $fullfilepath
                 )
             ) {
                 $this->_setError(
@@ -349,7 +379,7 @@ class LimeSurveyFileManager extends Survey_Common_Action
             $linkToImage = Yii::app()->baseUrl . '/' . $folder . '/' . $filename;
         }
 
-        
+
 
 
         $this->_printJsonResponse(
@@ -363,9 +393,14 @@ class LimeSurveyFileManager extends Survey_Common_Action
 
     }
 
-    public function downloadFiles() {
+    /**
+     * @return void
+     * @throws CException
+     */
+    public function downloadFiles()
+    {
         App()->loadLibrary('admin.pclzip');
-        
+
         $folder = basename(Yii::app()->request->getPost('folder', 'global'));
         $files = Yii::app()->request->getPost('files');
 
@@ -392,7 +427,12 @@ class LimeSurveyFileManager extends Survey_Common_Action
         );
     }
 
-    public function getZipFile($path) {
+    /**
+     * @param $path
+     * @return void
+     */
+    public function getZipFile($path)
+    {
         $filename = basename($path);
 
         // echo "<pre>";
@@ -415,13 +455,12 @@ class LimeSurveyFileManager extends Survey_Common_Action
         }
     }
 
-    ############################ PRIVATE METHODS ############################
-
     /**
      * Naive test for file extension
      * @TODO enhance this for file uploads
      *
      * @param string $fileExtension
+     * @param string $purpose
      * @return boolean
      */
     private function _extensionAllowed($fileExtension, $purpose = 'show')
@@ -435,11 +474,21 @@ class LimeSurveyFileManager extends Survey_Common_Action
         }
     }
 
+    /**
+     * @param $fileDestination
+     * @return bool
+     */
     private function checkTargetExists($fileDestination)
     {
         return is_file($fileDestination);
     }
 
+    /**
+     * @param $sFolderPath
+     * @param null $iSurveyId
+     * @return bool
+     * @throws CException
+     */
     private function _checkFolder($sFolderPath, $iSurveyId = null)
     {
 
@@ -532,6 +581,7 @@ class LimeSurveyFileManager extends Survey_Common_Action
      *
      * @param int|null $iSurveyId
      * @return array List of visible folders
+     * @throws CException
      */
     private function _collectFolderList($iSurveyId = null)
     {
@@ -561,6 +611,7 @@ class LimeSurveyFileManager extends Survey_Common_Action
      *
      * @param int|null $iSurveyId
      * @return array List of visible folders
+     * @throws CException
      */
     private function _collectCompleteFolderList($iSurveyId = null)
     {
@@ -627,6 +678,7 @@ class LimeSurveyFileManager extends Survey_Common_Action
      *
      * @param int|null $iSurveyId
      * @return array List of visible folders
+     * @throws CException
      */
     private function _collectRecursiveFolderList($iSurveyId = null)
     {
@@ -642,11 +694,11 @@ class LimeSurveyFileManager extends Survey_Common_Action
      * Get the correct tree array representation including child folders for provided folder
      *
      * @param string $folder
+     * @param string $level
      * @return array
      */
     private function _composeFolderArray($folder, $level='0')
     {
-
         $realPath = dirname(Yii::app()->basePath) . DIRECTORY_SEPARATOR . $folder;
         if (!file_exists($realPath)) {
             $this->_recursiveMkdir($realPath, 0750, true);
@@ -681,7 +733,12 @@ class LimeSurveyFileManager extends Survey_Common_Action
         return $folderArray;
     }
 
-    private function _recursiveMkdir($folder, $rights=0755) {
+    /**
+     * @param $folder
+     * @param int $rights
+     */
+    private function _recursiveMkdir($folder, $rights = 0755)
+    {
         $folders = explode(DIRECTORY_SEPARATOR, $folder);
         $curFolder = array_shift($folders).DIRECTORY_SEPARATOR;
         foreach ($folders as $folder) {
@@ -698,6 +755,7 @@ class LimeSurveyFileManager extends Survey_Common_Action
      * @param string $code
      * @param string $message
      * @param string|null $title
+     * @param null $debug
      * @return void
      */
     private function _setError($code, $message, $title = '', $debug = null)
@@ -714,6 +772,7 @@ class LimeSurveyFileManager extends Survey_Common_Action
      *
      * @param array $data The data that should be transferred
      * @return void Renders JSON document
+     * @throws CException
      */
     private function _printJsonResponse($data)
     {
@@ -728,6 +787,7 @@ class LimeSurveyFileManager extends Survey_Common_Action
      * Prints a json document with the intercontroller error message
      *
      * @return void Renders JSON document
+     * @throws LSJsonException
      */
     private function throwError()
     {
@@ -740,6 +800,9 @@ class LimeSurveyFileManager extends Survey_Common_Action
     }
 }
 
+/**
+ * Class FileManagerError
+ */
 class FileManagerError
 {
     public $message;
