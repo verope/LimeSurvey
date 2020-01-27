@@ -1,3 +1,19 @@
+<template>
+  <div class="navbar navbar-default scoped-navbar-fixes">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <span class="navbar-brand">{{$store.state.currentFolder}}</span>
+      </div>
+      <ul class="nav navbar-nav navbar-right">
+        <li id="FileManager--button-fileInTransit--cancel" v-if="fileInTransit"><a href="#" @click.prevent="cancelTransit">{{'Cancel '+transitType | translate}}</a></li>
+        <li id="FileManager--button-fileInTransit--submit" v-if="fileInTransit"><a href="#" @click.prevent="runTransit">{{ transitType | translate }}</a></li>
+        <li id="FileManager--button-download"><a href="#" @click.prevent="downloadFiles">{{ 'Download' | translate }}</a></li>
+        <li><a id="FileManager--button-upload" href="#" @click.prevent="openUploadModal">{{'Upload'|translate}}</a></li>
+      </ul>
+    </div>
+  </div>
+</template>
+
 <script>
 import UploadModal from './subcomponents/_uploadModal';
 import applyLoader from '../mixins/applyLoader';
@@ -72,22 +88,6 @@ ${error.data.message}`,
   }
 }
 </script>
-
-<template>
-  <div class="navbar navbar-default scoped-navbar-fixes">
-    <div class="container-fluid">
-      <div class="navbar-header">
-        <span class="navbar-brand">{{$store.state.currentFolder}}</span>
-      </div>
-      <ul class="nav navbar-nav navbar-right">
-        <li id="FileManager--button-fileInTransit--cancel" v-if="fileInTransit"><a href="#" @click.prevent="cancelTransit">{{'Cancel '+transitType | translate}}</a></li>
-        <li id="FileManager--button-fileInTransit--submit" v-if="fileInTransit"><a href="#" @click.prevent="runTransit">{{ transitType | translate }}</a></li>
-        <li id="FileManager--button-download"><a href="#" @click.prevent="downloadFiles">{{ 'Download' | translate }}</a></li>
-        <li><a id="FileManager--button-upload" href="#" @click.prevent="openUploadModal">{{'Upload'|translate}}</a></li>
-      </ul>
-    </div>
-  </div>
-</template>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
