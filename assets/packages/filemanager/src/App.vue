@@ -44,14 +44,11 @@ export default {
             this.loading = nV;
         },
         triggerForceRedraw() {
-            // this.loading=true;
             this.$forceUpdate();
-            // window.setTimeout(()=>{this.loading=false}, 250);
         }
     },
     mounted() {
         this.$store.dispatch("getFolderList").then(result => {
-            
             if(this.presetFolder != null) {
                 this.$store.commit(
                     "setCurrentFolder",

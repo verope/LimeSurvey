@@ -6,7 +6,7 @@
             <div> {{'File formats' | translate}}. </div>
         </div>
         <div class="panel-body ls-flex-column grow-1 fill">
-            <vue-dropzone
+            <!--<vue-dropzone
                 ref="fileUploaderDropzone"
                 id="FileUploader--dropzone"
                 v-on:vdropzone-sending="applyFolderAndData"
@@ -16,7 +16,15 @@
                 :useCustomSlot="true"
                 :uploadMultiple="true"
                 class="FileUpload--dropzone"
-            >
+            > -->
+            <vue-dropzone
+                ref="fileUploaderDropzone"
+                id="FileUploader--dropzone"
+                v-on:vdropzone-sending-multiple="sendFiles"
+                :options="dropzoneOptions"
+                :useCustomSlot="true"
+                :uploadMultiple="true"
+                class="FileUpload--dropzone">
                 <div class="dropzone-custom-content">
                     <h3>{{"Drag and drop here, or click once to start uploading" | translate}}</h3>
                     <p>{{"File is uploaded to currently selected folder" | translate}}</p>
@@ -49,7 +57,35 @@ export default {
         fileAdded(file) {
             
         },
-        applyFolderAndData(file, xhr, formData){
+        sendFiles(files, xhr, formData) {
+            console.log('Inside sendFiles()');
+            console.log('Files: ', files);
+            console.log('XHR: ', xhr);
+            console.log('formData: ', formData);
+            for (let file in files) {
+                let success = self.sendFile(file, xhr, formData);
+                console.log('File sendding success: ', success);
+            }
+        },
+        sendFile(file, xhr, formData) {
+            let success = false;
+            try {
+                let csrfTokenName = LS.data.csrfTokenName;
+                let csrfToken     = LS.data.csrfToken;
+                formData.append(csrfTokenName, csrfToken);
+                formData.append('folder', this.$store.state.currentFolder);
+            
+                let id = LS.reparsedParameters().combined.surveyid;
+                if (id != undefined) {
+                    formData.append('surveyid', id);
+                }
+                success = true;
+            } catch (exception) {
+                this.$log('Sending file: ',error);
+            }
+            return success;
+        },
+        applyFolderAndData(file, xhr, formData) {
             formData.append(LS.data.csrfTokenName, LS.data.csrfToken);
             formData.append('folder', this.$store.state.currentFolder);
             const surveyId = LS.reparsedParameters().combined.surveyid;
